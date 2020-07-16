@@ -1,9 +1,15 @@
 import React from "react";
+import "./default.scss";
+import Header from "./components/header/index";
+import Homepage from "./pages/homePage/index";
 
 const App = () => {
   return (
-    <div>
-      <h1>dfsadfas</h1>
+    <div className="App">
+      <Header />
+      <div className="main">
+        <Homepage />
+      </div>
     </div>
   );
 };
