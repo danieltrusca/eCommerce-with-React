@@ -1,19 +1,13 @@
-.signin {
+.socialSignin {
+  margin: 0.5rem auto 0;
+}
+
+.links {
   display: block;
-  max-width: 40rem;
   width: 100%;
-  border: 1px solid black;
-  margin: 6rem auto;
+  margin: 1.5rem auto 0;
 
-  .wrap {
-    padding: 10px 10px;
-
-    h2 {
-      text-align: center;
-    }
-
-    .socialSignin {
-      margin: 0.5rem auto 0;
-    }
+  a {
+    color: black;
   }
 }
