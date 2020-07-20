@@ -1,14 +1,11 @@
 import React, { Component } from "react";
 
+import Signup from "../../components/Signup/index";
 import "./styles.scss";
 
 class Registration extends Component {
   render() {
-    return (
-      <section className="registrationPage">
-        <h1>Registration</h1>
-      </section>
-    );
+    return <Signup />;
   }
 }
 
