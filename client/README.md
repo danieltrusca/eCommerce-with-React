@@ -4,3 +4,5 @@
 
 -configure firebase: https://firebase.google.com/
 npm install firebase
+
+-redux: npm i redux react-redux redux-logger redux-thunk

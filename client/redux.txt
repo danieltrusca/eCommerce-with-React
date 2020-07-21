@@ -1,0 +1,234 @@
+-install it with some dependencies and middleware:
+npm i redux react-redux redux-logger redux-thunk
+
+-before creating the redux store I will create a reducer first
+    -user.types.js
+            const userTypes = {
+                 SET_CURRENT_USER: "SET_CURRENT_USER",
+            };
+            export default userTypes;
+
+    -user.reducer.js
+        import userTypes from "./user.types";
+
+        const INITIAL_STATE = {
+        currentUser: null,
+        };
+
+        const userReducer = (state = INITIAL_STATE, action) => {
+        switch (action.type) {
+            case userTypes.SET_CURRENT_USER:
+            return {
+                ...state,
+                currentUser: action.payload,
+            };
+            default:
+            return state;
+        }
+        };
+
+        export default userReducer;
+
+    -rootReducer.js
+        import { combineReducers } from "redux";
+        import userReducer from "./User/user.reducer";
+
+        export default combineReducers({
+            user: userReducer,
+        });
+
+    -createStore.js
+
+        import { createStore, applyMiddleware } from "redux";
+        import logger from "redux-logger";
+        import thunk from "redux-thunk";
+
+        import rootReducer from "./rootReducer";
+
+        export const middlewares = [thunk, logger];
+
+        export const store = createStore(rootReducer, applyMiddleware(...middlewares));
+
+        export default store;
+
+    -add the store to be available for entire application: in index.js
+        import React from "react";
+        import ReactDOM from "react-dom";
+        import { BrowserRouter as Router } from "react-router-dom";
+        import { Provider } from "react-redux";
+        import store from "./redux/createStore";
+        import App from "./App";
+
+        ReactDOM.render(
+            <React.StrictMode>
+                <Provider store={store}>
+                    <Router>
+                        <App />
+                    </Router>
+                </Provider>
+            </React.StrictMode>,
+            document.getElementById("root")
+        );
+
+    -create user.action.js
+        import userTypes from "./user.types";
+
+        export const setCurrentUser = (user) => ({
+            type: userTypes.SET_CURRENT_USER,
+            payload: user,
+        });
+
+    -add the action in App.js to replace the last setState because we will use the redux props
+        import { connect } from "react-redux";
+        import { setCurrentUser } from "./redux/User/user.actions";
+
+        authListener = null;
+        componentDidMount() {
+            this.authListener = auth.onAuthStateChanged(async (userAuth) => {
+            if (userAuth) {
+                const userRef = await handleUserProfile(userAuth);
+                userRef.onSnapshot((snapshot) => {
+                // this.setState({
+                //   currentUser: {
+                //     id: snapshot.id,
+                //     ...snapshot.data(),
+                //   },
+                // });
+                this.props.setCurrentUser({
+                    id: snapshot.id,
+                    ...snapshot.data(),
+                });
+                });
+            }
+            this.props.setCurrentUser(userAuth);
+            // this.setState({
+            //   ...initialState,
+            // });
+            });
+        }
+        componentWillUnmount() {
+            this.authListener();
+        }
+
+        render() {
+    const { currentUser } = this.props;
+    return (
+      <div className="App">
+        <Switch>
+          <Route
+            exact
+            path="/"
+            render={() => (
+              <HomepageLayout>
+                <Homepage />
+              </HomepageLayout>
+            )}
+          />
+          <Route
+            path="/registration"
+            render={() =>
+              currentUser ? (
+                <Redirect to="/" />
+              ) : (
+                <MainLayout>
+                  <Registration />
+                </MainLayout>
+              )
+            }
+          />
+          <Route
+            path="/login"
+            render={() =>
+              currentUser ? (
+                <Redirect to="/" />
+              ) : (
+                <MainLayout>
+                  <Login />
+                </MainLayout>
+              )
+            }
+          />
+          <Route
+            path="/recovery"
+            render={() =>
+              currentUser ? (
+                <Redirect to="/" />
+              ) : (
+                <MainLayout>
+                  <Recovery />
+                </MainLayout>
+              )
+            }
+          />
+        </Switch>
+      </div>
+    );
+
+
+
+        const mapStateToProps = ({ user }) => ({
+        currentUser: user.currentUser,
+        });
+
+        const mapDispatchToProps = (dispatch) => ({
+        setCurrentUser: (user) => dispatch(setCurrentUser(user)),
+        });
+
+        export default connect(mapStateToProps, mapDispatchToProps)(App);
+
+
+        -we have to connect the header with the redux becuse the props are comming from redux props
+            import React from "react";
+            import { connect } from "react-redux";
+            import { Link } from "react-router-dom";
+            import { auth } from "../../firebase/utils";
+            import "./styles.scss";
+            import logo from "../../assets/logo2.png";
+
+            const Header = (props) => {
+            const { currentUser } = props;
+            return (
+                <header className="header">
+                <div className="wrap">
+                    <div className="logo">
+                    <Link to="/">
+                        <img src={logo} alt="logo" />
+                    </Link>
+                    </div>
+                    <div className="callToAction">
+                    {currentUser && (
+                        <ul>
+                        <li>
+                            <Link to="/dashboard">My Account</Link>
+                        </li>
+                        <li>
+                            <span onClick={() => auth.signOut()}>LogOut</span>
+                        </li>
+                        </ul>
+                    )}
+
+                    {!currentUser && (
+                        <ul>
+                        <li>
+                            <Link to="/registration">Register</Link>
+                        </li>
+                        <li>
+                            <Link to="/login">Login</Link>
+                        </li>
+                        </ul>
+                    )}
+                    </div>
+                </div>
+                </header>
+            );
+            };
+
+            Header.defaultProps = {
+            currentUser: null,
+            };
+
+            const mapStateToProps = ({ user }) => ({
+            currentUser: user.currentUser,
+            });
+
+            export default connect(mapStateToProps, null)(Header);
