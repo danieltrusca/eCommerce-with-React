@@ -1,50 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  resetPassword,
-  resetUserState,
-  resetAllAuthForm,
-} from "../../redux/User/user.actions";
 
 import "./styles.scss";
 import Button from "../forms/Button/index";
 import FormInput from "../forms/FormInput/index";
 import AuthWrapper from "../AuthWrapper/index";
 
-const mapState = ({ user }) => ({
-  resetPasswordSuccess: user.resetPasswordSuccess,
-  resetPasswordErrors: user.resetPasswordErrors,
-});
+import { auth } from "../../firebase/utils";
 
 const EmailPassword = (props) => {
-  const disptach = useDispatch();
-  const { resetPasswordSuccess, resetPasswordErrors } = useSelector(mapState);
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState([]);
 
-  useEffect(() => {
-    if (resetPasswordSuccess) {
-      disptach(resetAllAuthForm());
-      props.history.push("/login");
-      // resetForm();
-    }
-  }, [resetPasswordSuccess]);
+  const resetForm = () => {
+    setEmail("");
+    setErrors([]);
+  };
 
-  useEffect(() => {
-    if (Array.isArray(resetPasswordErrors) && resetPasswordErrors.length > 0) {
-      setErrors(resetPasswordErrors);
-    }
-  }, [resetPasswordErrors]);
-
-  // const resetForm = () => {
-  //   setEmail("");
-  //   setErrors([]);
-  // };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    disptach(resetPassword({ email }));
+
+    try {
+      const config = {
+        url: "http://localhost:3000/login",
+      };
+      await auth
+        .sendPasswordResetEmail(email, config)
+        .then(() => {
+          props.history.push("/login");
+          // console.log("Password reset");
+        })
+        .catch(() => {
+          const errors = ["Email not found! Please, try again!"];
+          setErrors(errors);
+        });
+    } catch (err) {
+      // this.setState({
+      //   errors: err,
+      // });
+      // console.log(err);
+    }
+
+    resetForm();
   };
   const configAuthWrapper = {
     headline: "Email Password",
